@@ -340,13 +340,15 @@ export default function Home() {
               <div className="stage-gallery" key={stage.id}>
                 {stage.images.map((item, index) => (
                   <figure className={`stage-image stage-image-${index + 1}`} key={item.src}>
-                    <Image
-                      src={`${publicBasePath}${item.src}`}
-                      alt={item.alt}
-                      fill
-                      priority={index === 0}
-                      sizes={index === 0 ? "(max-width: 900px) 100vw, 44vw" : "(max-width: 900px) 46vw, 19vw"}
-                    />
+                    <div className="stage-image-frame">
+                      <Image
+                        src={`${publicBasePath}${item.src}`}
+                        alt={item.alt}
+                        fill
+                        priority={index === 0}
+                        sizes="(max-width: 900px) 46vw, 22vw"
+                      />
+                    </div>
                     <figcaption>{item.caption}</figcaption>
                   </figure>
                 ))}

@@ -385,89 +385,62 @@ h3 {
 }
 
 .hero-art {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   min-height: 430px;
-  overflow: hidden;
-  background: var(--cream);
+  padding: 16px;
+  background: #f4f7ff;
 }
 
 .stage-gallery {
-  position: absolute;
-  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .stage-image {
-  position: absolute;
+  min-width: 0;
   margin: 0;
+}
+
+.stage-image-frame {
+  position: relative;
+  width: 100%;
   overflow: hidden;
-  background: #e8edff;
-}
-
-.stage-image-1 {
-  inset: 0;
-}
-
-.stage-image-2 {
-  z-index: 2;
-  top: 18px;
-  right: 18px;
-  width: 43%;
   aspect-ratio: 4 / 3;
-  border: 4px solid rgba(255, 255, 255, 0.96);
-  border-radius: 18px;
-  box-shadow: 0 18px 38px rgba(16, 32, 55, 0.28);
+  border-radius: 16px;
+  background: #e8edff;
+  box-shadow: 0 10px 26px rgba(28, 51, 95, 0.12);
 }
 
-.stage-image img {
+.stage-image-frame img {
   object-fit: cover;
   object-position: center;
 }
 
 .stage-image figcaption {
-  position: absolute;
-  z-index: 2;
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.66);
-  border-radius: 999px;
-  background: rgba(16, 32, 55, 0.82);
-  color: white;
-  font-size: 0.72rem;
+  margin-top: 9px;
+  padding: 0 3px;
+  color: var(--ink);
+  font-size: 0.82rem;
   font-weight: 780;
-  line-height: 1.1;
-  backdrop-filter: blur(10px);
-}
-
-.stage-image-1 figcaption {
-  top: 18px;
-  left: 18px;
-}
-
-.stage-image-2 figcaption {
-  right: 9px;
-  bottom: 9px;
-  left: 9px;
-  border-radius: 10px;
-  text-align: center;
+  line-height: 1.35;
 }
 
 .adult-tip {
-  position: absolute;
-  z-index: 3;
-  right: 18px;
-  bottom: 18px;
-  left: 18px;
+  margin-top: auto;
   padding: 16px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 17px;
-  background: rgba(16, 32, 55, 0.88);
-  color: white;
-  backdrop-filter: blur(14px);
+  border: 1px solid #d6ddff;
+  border-radius: 16px;
+  background: #e9edff;
+  color: var(--ink);
 }
 
 .adult-tip span {
   display: block;
   margin-bottom: 5px;
-  color: var(--yellow);
+  color: var(--blue);
   font-size: 0.74rem;
   font-weight: 850;
   letter-spacing: 0.08em;
@@ -1204,20 +1177,21 @@ footer p {
   }
 
   .hero-art {
-    min-height: 330px;
+    gap: 12px;
+    min-height: auto;
+    padding: 12px;
   }
 
-  .stage-image-2 {
-    top: 12px;
-    right: 12px;
-    width: 46%;
-    border-width: 3px;
-    border-radius: 14px;
+  .stage-gallery {
+    gap: 9px;
   }
 
-  .stage-image-1 figcaption {
-    top: 12px;
-    left: 12px;
+  .stage-image-frame {
+    border-radius: 13px;
+  }
+
+  .stage-image figcaption {
+    font-size: 0.76rem;
   }
 
   .stage-copy,
