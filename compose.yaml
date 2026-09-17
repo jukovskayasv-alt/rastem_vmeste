@@ -1,0 +1,14 @@
+services:
+  skif:
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - skif_runtime:/app/runtime
+      - ./data:/app/data:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  skif_runtime:

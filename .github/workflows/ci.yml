@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - skif
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+
+  deploy:
+    needs: test
+    if: github.event.repository.private == true && github.repository == 'jukovskayasv-alt/rastem_vmeste' && github.ref == 'refs/heads/skif' && github.event_name == 'push'
+    runs-on: [self-hosted, skif]
+    concurrency:
+      group: skif-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Deploy immutable revision
+        run: python3 -c "from pathlib import Path; import os; from ops.deploy import DockerEngine, deploy; deploy(DockerEngine(), Path.cwd(), os.environ['GITHUB_SHA'], Path('/opt/skif'))"
