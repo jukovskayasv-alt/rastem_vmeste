@@ -1,13 +1,12 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
-const url=process.env.CAPACITOR_SERVER_URL
-if(!url) console.warn('CAPACITOR_SERVER_URL is not set; Android app will use bundled web assets.')
+const url=process.env.CAPACITOR_SERVER_URL || 'https://elir.62.84.122.57.nip.io'
 
 const config: CapacitorConfig = {
-  appId: 'ru.elir.family',
+  appId: 'ru.elir.personal',
   appName: 'Элир',
   webDir: 'public',
-  server: url ? { url, cleartext: false } : undefined,
+  server: { url, cleartext: false },
   android: { allowMixedContent: false }
 }
 
