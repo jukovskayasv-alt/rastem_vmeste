@@ -26,7 +26,7 @@ jobs:
         run: npm install
       - name: Create Android project
         env:
-          CAPACITOR_SERVER_URL: https://elir.62.84.122.57.nip.io
+          CAPACITOR_SERVER_URL: http://62.84.122.57
         run: |
           rm -rf android
           npx cap add android
