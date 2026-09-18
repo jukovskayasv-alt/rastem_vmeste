@@ -1,7 +1,8 @@
 services:
   elir:
-    build: .
+    image: ghcr.io/jukovskayasv-alt/elir:latest
     restart: unless-stopped
+    pull_policy: always
     environment:
       NODE_ENV: production
       GIGACHAT_AUTH_KEY: ${GIGACHAT_AUTH_KEY}
