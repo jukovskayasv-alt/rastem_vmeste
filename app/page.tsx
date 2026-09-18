@@ -1,12 +1,11 @@
 'use client'
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { Bot, BriefcaseBusiness, ChevronDown, CircleUserRound, MessageCircleMore, Paperclip, Send, Sparkles, UsersRound, X } from 'lucide-react'
+import { Bot, BriefcaseBusiness, ChevronDown, MessageCircleMore, Paperclip, Send, Sparkles, X } from 'lucide-react'
 
-type Scope = 'Личное' | 'Семья' | 'Работа'
+type Scope = 'Личное' | 'Работа'
 type Agent = { id:string; name:string; role:string; icon:string; model:string }
 type Msg = { id:number; who:'user'|'assistant'; text:string; agent?:string }
-type Profile = { id:string; name:string; role:string }
 
 const agents: Agent[] = [
   {id:'elir',name:'Элир',role:'Главный помощник и координатор',icon:'✦',model:'gpt-5.6-sol'},
@@ -17,18 +16,12 @@ const agents: Agent[] = [
   {id:'content',name:'Контент',role:'Посты, объявления, презентации',icon:'✎',model:'gpt-5.6-luna'},
   {id:'tech',name:'Технарь',role:'Приложение, сервер, GitHub, автоматизация',icon:'⌘',model:'gpt-5.6-terra'},
 ]
-const profiles: Profile[] = [
-  {id:'svetlana',name:'Светлана',role:'Личный профиль'},
-  {id:'alexey',name:'Алексей',role:'Семья / команда'},
-]
-const welcome:Msg={id:1,who:'assistant',agent:'Элир',text:'Я здесь. Это наше общее пространство: можем думать вдвоём или позвать специалистов на совет. С чего начнём?'}
+const welcome:Msg={id:1,who:'assistant',agent:'Элир',text:'Я здесь. Это твоё личное пространство: можем думать вдвоём или позвать специалистов на совет. С чего начнём?'}
 
 export default function Home(){
   const [scope,setScope]=useState<Scope>('Личное')
   const [agent,setAgent]=useState<Agent>(agents[0])
-  const [profile,setProfile]=useState<Profile>(profiles[0])
   const [openAgents,setOpenAgents]=useState(false)
-  const [openProfile,setOpenProfile]=useState(false)
   const [openMemory,setOpenMemory]=useState(false)
   const [text,setText]=useState('')
   const [memory,setMemory]=useState('')
@@ -36,16 +29,9 @@ export default function Home(){
   const [ready,setReady]=useState(false)
   const [messages,setMessages]=useState<Msg[]>([welcome])
 
-  const storageKey=`elir:${profile.id}:${scope}`
+  const storageKey=`elir:svetlana:${scope}`
 
-  useEffect(()=>{
-    const savedProfile=localStorage.getItem('elir:profile')
-    if(savedProfile){
-      const p=profiles.find(x=>x.id===savedProfile)
-      if(p) setProfile(p)
-    }
-    setReady(true)
-  },[])
+  useEffect(()=>{ setReady(true) },[])
 
   useEffect(()=>{
     if(!ready) return
@@ -64,11 +50,7 @@ export default function Home(){
     localStorage.setItem(storageKey,JSON.stringify({messages:messages.slice(-80),memory,updatedAt:new Date().toISOString()}))
   },[messages,memory,storageKey,ready])
 
-  const placeholder = useMemo(()=> scope==='Работа' ? 'Напиши рабочую задачу…' : scope==='Семья' ? 'Напиши о семейной задаче…' : 'Напиши Элиру…',[scope])
-
-  function chooseProfile(p:Profile){
-    setProfile(p); localStorage.setItem('elir:profile',p.id); setOpenProfile(false)
-  }
+  const placeholder = useMemo(()=> scope==='Работа' ? 'Напиши рабочую задачу…' : 'Напиши Элиру…',[scope])
 
   async function send(council=false){
     const value=text.trim(); if(!value || busy) return
@@ -76,7 +58,7 @@ export default function Home(){
     setMessages(next); setText(''); setBusy(true); setOpenAgents(false)
     try{
       const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-        message:value,scope,agent:agent.id,council,profile:{id:profile.id,name:profile.name},memory,history:next.slice(-12)
+        message:value,scope,agent:agent.id,council,profile:{id:'svetlana',name:'Светлана'},memory,history:next.slice(-12)
       })})
       const data=await r.json()
       setMessages(m=>[...m,{id:Date.now()+1,who:'assistant',agent:data.agent || agent.name,text:data.text || data.error || 'Не удалось получить ответ.'}])
@@ -89,12 +71,11 @@ export default function Home(){
 
   return <main className="shell">
     <header className="topbar">
-      <div className="brand"><div className="orb">✦</div><div><strong>Элир</strong><span>{profile.name} · OpenAI</span></div></div>
-      <button className="avatar" onClick={()=>setOpenProfile(true)} aria-label="Профиль"><CircleUserRound size={22}/></button>
+      <div className="brand"><div className="orb">✦</div><div><strong>Элир</strong><span>Светлана · OpenAI</span></div></div>
     </header>
 
     <nav className="scope-tabs">
-      {(['Личное','Семья','Работа'] as Scope[]).map(s=><button key={s} onClick={()=>setScope(s)} className={scope===s?'active':''}>{s==='Личное'?<MessageCircleMore/>:s==='Семья'?<UsersRound/>:<BriefcaseBusiness/>}{s}</button>)}
+      {(['Личное','Работа'] as Scope[]).map(s=><button key={s} onClick={()=>setScope(s)} className={scope===s?'active':''}>{s==='Личное'?<MessageCircleMore/>:<BriefcaseBusiness/>}{s}</button>)}
     </nav>
 
     <section className="agent-strip">
@@ -124,13 +105,8 @@ export default function Home(){
       </form>
     </section>
 
-    {openProfile && <div className="sheet-backdrop" onClick={()=>setOpenProfile(false)}><section className="sheet" onClick={e=>e.stopPropagation()}>
-      <header><div><b>Кто сейчас говорит с Элиром</b><small>У каждого свой личный контекст</small></div><button onClick={()=>setOpenProfile(false)}><X/></button></header>
-      {profiles.map(p=><button key={p.id} className={profile.id===p.id?'profile-row selected':'profile-row'} onClick={()=>chooseProfile(p)}><CircleUserRound/><div><b>{p.name}</b><small>{p.role}</small></div></button>)}
-    </section></div>}
-
     {openMemory && <div className="sheet-backdrop" onClick={()=>setOpenMemory(false)}><section className="sheet" onClick={e=>e.stopPropagation()}>
-      <header><div><b>Память · {scope}</b><small>Хранится на этом устройстве для профиля {profile.name}</small></div><button onClick={()=>setOpenMemory(false)}><X/></button></header>
+      <header><div><b>Память · {scope}</b><small>Только твоя память на этом устройстве</small></div><button onClick={()=>setOpenMemory(false)}><X/></button></header>
       <textarea className="memory-editor" value={memory} onChange={e=>setMemory(e.target.value)} placeholder="Например: важные договорённости, правила проекта, предпочтения, текущие цели…"/>
       <button className="memory-save" onClick={()=>setOpenMemory(false)}>Сохранить память</button>
     </section></div>}
