@@ -1,11 +1,12 @@
 'use client'
 
-import { FormEvent, useMemo, useState } from 'react'
-import { Bot, BriefcaseBusiness, ChevronDown, CircleUserRound, MessageCircleMore, Paperclip, Send, Sparkles, UsersRound } from 'lucide-react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { Bot, BriefcaseBusiness, ChevronDown, CircleUserRound, MessageCircleMore, Paperclip, Send, Sparkles, UsersRound, X } from 'lucide-react'
 
 type Scope = 'Личное' | 'Семья' | 'Работа'
 type Agent = { id:string; name:string; role:string; icon:string; model:string }
 type Msg = { id:number; who:'user'|'assistant'; text:string; agent?:string }
+type Profile = { id:string; name:string; role:string }
 
 const agents: Agent[] = [
   {id:'elir',name:'Элир',role:'Главный помощник и координатор',icon:'✦',model:'gpt-5.6-sol'},
@@ -16,29 +17,71 @@ const agents: Agent[] = [
   {id:'content',name:'Контент',role:'Посты, объявления, презентации',icon:'✎',model:'gpt-5.6-luna'},
   {id:'tech',name:'Технарь',role:'Приложение, сервер, GitHub, автоматизация',icon:'⌘',model:'gpt-5.6-terra'},
 ]
+const profiles: Profile[] = [
+  {id:'svetlana',name:'Светлана',role:'Личный профиль'},
+  {id:'alexey',name:'Алексей',role:'Семья / команда'},
+]
+const welcome:Msg={id:1,who:'assistant',agent:'Элир',text:'Я здесь. Это наше общее пространство: можем думать вдвоём или позвать специалистов на совет. С чего начнём?'}
 
 export default function Home(){
   const [scope,setScope]=useState<Scope>('Личное')
   const [agent,setAgent]=useState<Agent>(agents[0])
+  const [profile,setProfile]=useState<Profile>(profiles[0])
   const [openAgents,setOpenAgents]=useState(false)
+  const [openProfile,setOpenProfile]=useState(false)
+  const [openMemory,setOpenMemory]=useState(false)
   const [text,setText]=useState('')
+  const [memory,setMemory]=useState('')
   const [busy,setBusy]=useState(false)
-  const [messages,setMessages]=useState<Msg[]>([
-    {id:1,who:'assistant',agent:'Элир',text:'Я здесь. Это наше общее пространство: можем думать вдвоём или позвать специалистов на совет. С чего начнём?'}
-  ])
+  const [ready,setReady]=useState(false)
+  const [messages,setMessages]=useState<Msg[]>([welcome])
+
+  const storageKey=`elir:${profile.id}:${scope}`
+
+  useEffect(()=>{
+    const savedProfile=localStorage.getItem('elir:profile')
+    if(savedProfile){
+      const p=profiles.find(x=>x.id===savedProfile)
+      if(p) setProfile(p)
+    }
+    setReady(true)
+  },[])
+
+  useEffect(()=>{
+    if(!ready) return
+    const raw=localStorage.getItem(storageKey)
+    if(raw){
+      try{
+        const parsed=JSON.parse(raw)
+        setMessages(parsed.messages?.length?parsed.messages:[welcome])
+        setMemory(parsed.memory||'')
+      }catch{setMessages([welcome]);setMemory('')}
+    }else{setMessages([welcome]);setMemory('')}
+  },[storageKey,ready])
+
+  useEffect(()=>{
+    if(!ready) return
+    localStorage.setItem(storageKey,JSON.stringify({messages:messages.slice(-80),memory,updatedAt:new Date().toISOString()}))
+  },[messages,memory,storageKey,ready])
 
   const placeholder = useMemo(()=> scope==='Работа' ? 'Напиши рабочую задачу…' : scope==='Семья' ? 'Напиши о семейной задаче…' : 'Напиши Элиру…',[scope])
+
+  function chooseProfile(p:Profile){
+    setProfile(p); localStorage.setItem('elir:profile',p.id); setOpenProfile(false)
+  }
 
   async function send(council=false){
     const value=text.trim(); if(!value || busy) return
     const next=[...messages,{id:Date.now(),who:'user' as const,text:value}]
     setMessages(next); setText(''); setBusy(true); setOpenAgents(false)
     try{
-      const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:value,scope,agent:agent.id,council,history:next.slice(-12)})})
+      const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        message:value,scope,agent:agent.id,council,profile:{id:profile.id,name:profile.name},memory,history:next.slice(-12)
+      })})
       const data=await r.json()
       setMessages(m=>[...m,{id:Date.now()+1,who:'assistant',agent:data.agent || agent.name,text:data.text || data.error || 'Не удалось получить ответ.'}])
     }catch{
-      setMessages(m=>[...m,{id:Date.now()+1,who:'assistant',agent:'Элир',text:'Сервер пока не подключён. Интерфейс уже работает — осталось добавить OPENAI_API_KEY на сервере.'}])
+      setMessages(m=>[...m,{id:Date.now()+1,who:'assistant',agent:'Элир',text:'Сервер пока не подключён. Интерфейс и локальная память уже работают.'}])
     }finally{setBusy(false)}
   }
 
@@ -46,8 +89,8 @@ export default function Home(){
 
   return <main className="shell">
     <header className="topbar">
-      <div className="brand"><div className="orb">✦</div><div><strong>Элир</strong><span>онлайн · OpenAI</span></div></div>
-      <button className="avatar"><CircleUserRound size={22}/></button>
+      <div className="brand"><div className="orb">✦</div><div><strong>Элир</strong><span>{profile.name} · OpenAI</span></div></div>
+      <button className="avatar" onClick={()=>setOpenProfile(true)} aria-label="Профиль"><CircleUserRound size={22}/></button>
     </header>
 
     <nav className="scope-tabs">
@@ -60,7 +103,7 @@ export default function Home(){
     </section>
 
     <section className="chat">
-      <div className="day">Сегодня</div>
+      <div className="day">Сегодня · {scope}</div>
       {messages.map(m=><div key={m.id} className={`row ${m.who}`}>
         {m.who==='assistant' && <div className="mini-orb">✦</div>}
         <div className="bubble">{m.who==='assistant' && <small>{m.agent}</small>}<p>{m.text}</p></div>
@@ -71,6 +114,7 @@ export default function Home(){
     <section className="composer-wrap">
       <div className="quick-actions">
         <button onClick={()=>setOpenAgents(true)}><Bot size={16}/> Специалист</button>
+        <button onClick={()=>setOpenMemory(true)}><MessageCircleMore size={16}/> Память</button>
         <button onClick={()=>send(true)} disabled={!text.trim()||busy}><Sparkles size={16}/> Созвать совет</button>
       </div>
       <form className="composer" onSubmit={onSubmit}>
@@ -79,5 +123,16 @@ export default function Home(){
         <button className="send" disabled={!text.trim()||busy}><Send size={19}/></button>
       </form>
     </section>
+
+    {openProfile && <div className="sheet-backdrop" onClick={()=>setOpenProfile(false)}><section className="sheet" onClick={e=>e.stopPropagation()}>
+      <header><div><b>Кто сейчас говорит с Элиром</b><small>У каждого свой личный контекст</small></div><button onClick={()=>setOpenProfile(false)}><X/></button></header>
+      {profiles.map(p=><button key={p.id} className={profile.id===p.id?'profile-row selected':'profile-row'} onClick={()=>chooseProfile(p)}><CircleUserRound/><div><b>{p.name}</b><small>{p.role}</small></div></button>)}
+    </section></div>}
+
+    {openMemory && <div className="sheet-backdrop" onClick={()=>setOpenMemory(false)}><section className="sheet" onClick={e=>e.stopPropagation()}>
+      <header><div><b>Память · {scope}</b><small>Хранится на этом устройстве для профиля {profile.name}</small></div><button onClick={()=>setOpenMemory(false)}><X/></button></header>
+      <textarea className="memory-editor" value={memory} onChange={e=>setMemory(e.target.value)} placeholder="Например: важные договорённости, правила проекта, предпочтения, текущие цели…"/>
+      <button className="memory-save" onClick={()=>setOpenMemory(false)}>Сохранить память</button>
+    </section></div>}
   </main>
 }
