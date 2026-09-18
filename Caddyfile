@@ -1,0 +1,4 @@
+elir.62.84.122.57.nip.io {
+  reverse_proxy elir:3000
+  encode zstd gzip
+}
