@@ -1,0 +1,27 @@
+services:
+  elir:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      GIGACHAT_AUTH_KEY: ${GIGACHAT_AUTH_KEY}
+      GIGACHAT_SCOPE: GIGACHAT_API_PERS
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - elir
+
+volumes:
+  caddy_data:
+  caddy_config:
