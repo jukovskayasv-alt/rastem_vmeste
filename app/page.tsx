@@ -8,13 +8,13 @@ type Agent = { id:string; name:string; role:string; icon:string; model:string }
 type Msg = { id:number; who:'user'|'assistant'; text:string; agent?:string }
 
 const agents: Agent[] = [
-  {id:'elir',name:'Элир',role:'Главный помощник и координатор',icon:'✦',model:'gemini-3.8-flash'},
-  {id:'strategy',name:'Стратег',role:'Проекты, решения, развитие СКИФ',icon:'⌁',model:'gemini-3.8-flash'},
-  {id:'sales',name:'Продажник',role:'Продажа земельных участков',icon:'◈',model:'gemini-3.8-flash'},
-  {id:'finance',name:'Финансист',role:'Расчёты, бюджет, финансовые планы',icon:'₽',model:'gemini-3.8-flash'},
-  {id:'law',name:'Юрист',role:'Документы и правовая логика',icon:'§',model:'gemini-3.8-flash'},
-  {id:'content',name:'Контент',role:'Посты, объявления, презентации',icon:'✎',model:'gemini-3.8-flash'},
-  {id:'tech',name:'Технарь',role:'Приложение, сервер, GitHub, автоматизация',icon:'⌘',model:'gemini-3.8-flash'},
+  {id:'elir',name:'Элир',role:'Главный помощник и координатор',icon:'✦',model:'GigaChat-3-Ultra'},
+  {id:'strategy',name:'Стратег',role:'Проекты, решения, развитие СКИФ',icon:'⌁',model:'GigaChat-2-Pro'},
+  {id:'sales',name:'Продажник',role:'Продажа земельных участков',icon:'◈',model:'GigaChat-2'},
+  {id:'finance',name:'Финансист',role:'Расчёты, бюджет, финансовые планы',icon:'₽',model:'GigaChat-2-Pro'},
+  {id:'law',name:'Юрист',role:'Документы и правовая логика',icon:'§',model:'GigaChat-2-Pro'},
+  {id:'content',name:'Контент',role:'Посты, объявления, презентации',icon:'✎',model:'GigaChat-2'},
+  {id:'tech',name:'Технарь',role:'Приложение, сервер, GitHub, автоматизация',icon:'⌘',model:'GigaChat-2-Pro'},
 ]
 const welcome:Msg={id:1,who:'assistant',agent:'Элир',text:'Я здесь. Это твоё личное пространство: можем думать вдвоём или позвать специалистов на совет. С чего начнём?'}
 
@@ -71,7 +71,7 @@ export default function Home(){
 
   return <main className="shell">
     <header className="topbar">
-      <div className="brand"><div className="orb">✦</div><div><strong>Элир</strong><span>Светлана · AI</span></div></div>
+      <div className="brand"><div className="orb">✦</div><div><strong>Элир</strong><span>Светлана · GigaChat</span></div></div>
     </header>
 
     <nav className="scope-tabs">
@@ -80,7 +80,7 @@ export default function Home(){
 
     <section className="agent-strip">
       <button className="agent-current" onClick={()=>setOpenAgents(v=>!v)}><span>{agent.icon}</span><div><b>{agent.name}</b><small>{agent.role}</small></div><ChevronDown size={18}/></button>
-      {openAgents && <div className="agent-menu">{agents.map(a=><button key={a.id} onClick={()=>{setAgent(a);setOpenAgents(false)}}><span className="agent-icon">{a.icon}</span><div><b>{a.name}</b><small>{a.role}</small></div><em>{a.model.replace('gemini-','')}</em></button>)}</div>}
+      {openAgents && <div className="agent-menu">{agents.map(a=><button key={a.id} onClick={()=>{setAgent(a);setOpenAgents(false)}}><span className="agent-icon">{a.icon}</span><div><b>{a.name}</b><small>{a.role}</small></div><em>{a.model.replace('GigaChat-','')}</em></button>)}</div>}
     </section>
 
     <section className="chat">
