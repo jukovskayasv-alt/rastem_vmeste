@@ -2,6 +2,13 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - '.github/workflows/android-apk.yml'
 
 jobs:
   android:
@@ -11,6 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -19,8 +27,9 @@ jobs:
         run: npm install
       - name: Create Android project
         env:
-          CAPACITOR_SERVER_URL: ${{ secrets.CAPACITOR_SERVER_URL }}
+          CAPACITOR_SERVER_URL: https://elir.62.84.122.57.nip.io
         run: |
+          rm -rf android
           npx cap add android
           npx cap sync android
       - name: Build debug APK
@@ -29,5 +38,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: elir-debug-apk
+          name: elir-android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
